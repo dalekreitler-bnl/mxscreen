@@ -6,11 +6,13 @@ Created on Wed Apr  8 18:29:25 2020
 @author: dale
 """
 
-import expparams
+from mxscreen.experimentparams import framereaders
 
 def main():
-    frameName14 = "../burn_5ms_000002.cbf"
-    reader = expparams.CbfReader(frameName=frameName14)
+    frameName14 = "burn_5ms_000002.cbf"
+    reader = framereaders.CbfReader(frameName=frameName14)
+    #load frame
+    reader.loadFirstFrame(frameName14)
     detector = reader.getDetector()
     detDistance = reader.getDetDistance()
     pixelSize = reader.getPixelSize()
