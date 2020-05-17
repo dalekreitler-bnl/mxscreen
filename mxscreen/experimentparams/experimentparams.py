@@ -9,7 +9,7 @@ Created on Sun Apr 12 17:44:35 2020
 from mxscreen.experimentparams import framereaders
 
 class ExperimentParamsBuilder:
-    def 
+ 
 
 class ExperimentParams:
     
