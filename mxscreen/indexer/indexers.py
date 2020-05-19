@@ -38,28 +38,34 @@ class Indexer(ABC):
 class DialsIndexer(Indexer):
     
     def __init__(self, mxpath=None):
+        
         self._mxpath = mxpath
         self._dirListIndex = []
+        
         return
         
     def setupEnvironment(self):
         os.chdir(self._mxpath.runDir)
         return
     
-    def createInputFiles(self):    
+    def createInputFiles(self): 
+        
         self.setupEnvironment()
+        
         if os.path.isfile("SPOT.XDS"):
             spotXDSArray = np.genfromtxt("SPOT.XDS")
             maxFrameNumber = int(spotXDSArray[:,2].max(axis=0))
             spotArray = np.zeros((maxFrameNumber,2))  
             subprocess.run(["dials.import",
-                           "{}".format(self._mxpath.masterH5Path)])          
+                           "{}".format(self._mxpath.masterH5Path)]) 
+            
             for frame in range(0,maxFrameNumber):
                 frameCutLow = (spotXDSArray[:,2] >= frame)
                 frameCutHigh = (spotXDSArray[:,2] < frame + 1)
                 filter_ = frameCutLow*frameCutHigh
                 spotXDSArrayFiltered = spotXDSArray[filter_]
                 filteredRows, _ = spotXDSArrayFiltered.shape
+                
                 if filteredRows > 10:
                     spotArray[frame,:] = frame + 1, filteredRows
                     singleFrameDir = "{:06d}".format(frame)
@@ -69,9 +75,11 @@ class DialsIndexer(Indexer):
                     np.savetxt("SPOT.XDS", spotXDSArrayFiltered,
                                fmt='%1.2f %1.2f %1.2f %1.2f')
                     os.chdir(self._mxpath.runDir)
+                    
         else:
             print("No SPOT.XDS file found in directory")
             print("Did a spotfinder run?")
+            
         return
     
     def indexSingleFrame(self, dirName):

@@ -15,7 +15,6 @@ import numpy as np
 
 class SpotFinder(ABC):
     
-    
     @abstractmethod
     def setupEnvironment(self):
         pass
@@ -36,6 +35,23 @@ class SpotFinder(ABC):
     def run(self):
         pass
 
+
+class SpotFinderFactory:
+    
+    def getSpotFinder(self, spotFinder="dozor"):
+        
+        if spotFinder == "dozor" or spotFinder == "Dozor":
+            return DozorSpotFinder()
+    
+        elif spotFinder == "dials" or spotFinder == "Dials":
+            return DialsSpotFinder()
+        
+        else:
+            print("Currently only supporting dozor or dials spotfinders")
+            raise ValueError(spotFinder)
+            
+        return
+        
 
 class DozorSpotFinder(SpotFinder):
     
@@ -78,7 +94,7 @@ class DozorSpotFinder(SpotFinder):
                            fmt='%1.2f %1.2f %1.2f %1.2f')
                 return
             
-        def dozortoSpotXDSArray(fileName, nSpotMin=10):
+        def dozortoSpotXDSArray(fileName, nSpotMin=5):
             npArray = np.genfromtxt(fileName, skip_header=3)
             #reformat with dummy z coord. because only one frame
             frameNumber = parseSpotFileName(fileName)

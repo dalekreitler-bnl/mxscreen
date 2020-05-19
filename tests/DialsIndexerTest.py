@@ -16,7 +16,7 @@ def main():
     
     mxpath = mxpaths.MxPath()
     
-    spotfinder = spotfinders.DozorSpotFinder(mxpath)
+    spotfinder = spotfinders.DialsSpotFinder(mxpath)
     
     t1 = time.perf_counter()
     
