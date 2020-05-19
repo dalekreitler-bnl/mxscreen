@@ -21,7 +21,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dalekreitler-bnl/mxscreen.git",
-    packages=setuptools.find_packages('mxscreen'),
+    packages=setuptools.find_packages(),
     classifiers=[
         "License :: GNU General Public",
     ],
