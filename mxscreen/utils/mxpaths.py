@@ -12,9 +12,9 @@ class MxPath:
     
     #run results go in MxPath.runDir
     
-    def __init__(self):
+    def __init__(self, dir_=os.getcwd()):
         
-        self._wdir = "/home/dkreitler/mxscreen_test_data/rasterImages"
+        self._wdir = dir_
         self._dirList = os.listdir("/home/dkreitler/mxscreen_test_data/rasterImages")
         self.masterH5 = [f for f in self._dirList
                          if f.endswith("master.h5")][0]
