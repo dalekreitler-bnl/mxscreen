@@ -23,13 +23,14 @@ setuptools.setup(
     url="https://github.com/dalekreitler-bnl/mxscreen.git",
     packages=setuptools.find_packages(),
     classifiers=[
-        "License :: GNU General Public",
+        "License :: GNU GPL",
     ],
     install_requires=['numpy'],
     python_requires='>=3.6',
     entry_points={
         'console_scripts': [
-            "mxscreen=mxscreen.scripts.mxpipeline:main"
+            "mxscreen_dozor=mxscreen.scripts.mxpipeline:mainDozor",
+            "mxscreen_dials=mxscreen.scripts.mxpipeline:mainDials",
             ]
     }
 )
