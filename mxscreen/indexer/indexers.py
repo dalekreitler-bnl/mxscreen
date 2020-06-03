@@ -109,6 +109,7 @@ class DialsIndexer(Indexer):
     def runSlow(self):
         
         self.setupEnvironment()
+        self.createInputFiles()
         for dir_ in self._dirListIndex:
             process = self.indexSingleFrame(dir_)
             process.wait()
