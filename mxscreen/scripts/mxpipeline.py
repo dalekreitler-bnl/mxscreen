@@ -18,6 +18,13 @@ def mainDozor():
     mxPipelineDozor.run()
     return
 
+def mainDozorSlow():
+    mxPipelineBuilder = pipelines.MxPipelineBuilder()
+    mxPipelineDirector = pipelines.MxPipelineDirector(mxPipelineBuilder)
+    mxPipelineDozor = mxPipelineDirector.getMxPipeline("dozor")
+    mxPipelineDozor.runSlow()
+    return
+
 def mainDials():
 
     mxPipelineBuilder = pipelines.MxPipelineBuilder()
