@@ -60,6 +60,11 @@ class MxPipeline:
         self._spotFinder.run()
         self._indexer.run()
         self._indexer.writeReport()
+        
+    def runSlow(self):
+        self._spotFinder.run()
+        self._indexer.runSlow()
+        self._indexer.writeReport()
     
 
 class Builder:
