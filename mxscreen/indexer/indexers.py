@@ -96,14 +96,24 @@ class DialsIndexer(Indexer):
             return process
     
     def run(self):
+        
         self.setupEnvironment()
         self.createInputFiles()
         processList = []
         for dir_ in self._dirListIndex:
             processList.append(self.indexSingleFrame(dir_))   
         for process in processList:
-            process.wait()         
+            process.wait()
         return
+    
+    def runSlow(self):
+        
+        self.setupEnvironment()
+        for dir_ in self._dirListIndex:
+            process = self.indexSingleFrame(dir_)
+            process.wait()
+        return
+        
         
     def writeReport(self):
         
