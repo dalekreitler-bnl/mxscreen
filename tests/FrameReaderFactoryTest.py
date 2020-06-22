@@ -11,9 +11,9 @@ from mxscreen.experimentparams import framereaders
 
 
 def main():
-    frameName = "burn_5ms_000002.cbf"
+    frameName = "/home/dkreitler/mxscreen_test_data/rasterImages/Lyso_13_r_Raster_792_master.h5"
     frameReaderFactory = framereaders.FrameReaderFactory()
-    frameReader = frameReaderFactory.getFrameReader("cbf")
+    frameReader = frameReaderFactory.getFrameReader("hdf5")
     frameReader.loadFirstFrame(frameName)
     print(frameReader.getDetector())
     print(frameReader.getDetDistance())

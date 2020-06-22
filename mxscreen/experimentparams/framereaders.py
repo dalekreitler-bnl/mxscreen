@@ -7,6 +7,7 @@ Created on Wed Apr  8 16:14:46 2020
 """
 from abc import ABC, abstractmethod
 import subprocess
+import h5py
 
 class FrameReader(ABC):
     
@@ -52,6 +53,7 @@ class FrameReader(ABC):
 
 class FrameReaderFactory:
     
+    @classmethod
     def getFrameReader(self, frameFormat):
         if frameFormat == "cbf":
             return CbfReader()
@@ -134,32 +136,36 @@ class CbfReader(FrameReader):
     
 class Hdf5Reader(FrameReader):
     
-    def __init__(self, masterFrame=None):
-        self._masterFrame = masterFrame
+    def __init__(self, frameName=None):
+        self._masterFrame = frameName
         
     def loadFirstFrame(self, masterFrame):
-        self._masterFrame = masterFrame
+        f = h5py.File(masterFrame,'r')
+        self._h5DetectorGroup = f['entry/instrument/detector']
+        self._h5BeamGroup = f['entry/instrument/beam']
         
     def getDetector(self):
-        pass
+        detectorString = self._h5DetectorGroup['description'][()].decode()[8:]
+        detectorString = detectorString.lower()
+        return detectorString
     
     def getDetDistance(self):
-        pass
+        return self._h5DetectorGroup['detector_distance'][()]*1000
     
     def getPixelSize(self):
-        pass
+        return 1000*self._h5DetectorGroup['x_pixel_size'][()]
     
     def getExposureTime(self):
         pass
     
     def getWavelength(self):
-        pass
+        return self._h5BeamGroup['incident_wavelength'][()]
     
     def getBeamx(self):
-        pass
+        return self._h5DetectorGroup['beam_center_x'][()]
     
     def getBeamy(self):
-        pass
+        return self._h5DetectorGroup['beam_center_y'][()]
     
     def getStartAngle(self):
         pass

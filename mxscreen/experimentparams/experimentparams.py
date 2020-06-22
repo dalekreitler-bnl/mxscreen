@@ -6,23 +6,27 @@ Created on Sun Apr 12 17:44:35 2020
 @author: dale
 """
 
-from mxscreen.experimentparams import framereaders
+from mxscreen.experimentparams import framereaders as fr
 
-class ExperimentParamsBuilder:
- 
+
+
 
 class ExperimentParams:
     
-    def __init__(self, frameFormat="cbf", firstFrame):
+    def __init__(self, frameFormat="hdf5", firstFrame=None):
         
         self._frameFormat = frameFormat
         self._firstFrame = firstFrame
+        self.loadFrameReader()
+        self.loadFirstFrame()
+        self.loadExperimentParams()
+        
         
     def loadFrameReader(self):
-        self._frameReader = framereaders.FrameReaderFactory(self._frameFormat)
+        self._frameReader = fr.FrameReaderFactory.getFrameReader(self._frameFormat)
         
     def loadFirstFrame(self):
-        self._frameReader.loadFirstFrame(firstFrame)
+        self._frameReader.loadFirstFrame(self._firstFrame)
         
     def loadExperimentParams(self):
         self.detector = self._frameReader.getDetector()
@@ -32,4 +36,4 @@ class ExperimentParams:
         self.beamy = self._frameReader.getBeamy()
         self.startAngle = self._frameReader.getStartAngle()
         self.angleIncrement = self._frameReader.getAngleIncrement()
-        
+        self.wavelength = self._frameReader.getWavelength()
