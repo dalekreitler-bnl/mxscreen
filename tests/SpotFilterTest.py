@@ -21,19 +21,25 @@ import matplotlib.pyplot as plt
 import os
 
 def main():
-    f1 = "/GPFS/CENTRAL/xf17id2/dkreitler/1-JJ-A1_1/test01_23800_master.h5"
-    f2 = "/GPFS/CENTRAL/xf17id2/dkreitler/1-JJ-A1_1/mxs_01/SPOT.XDS"
+    f1 = "/home/dale/Xray/mxscreen_test_data/1-JJ-A1_1/test01_23800_master.h5"
+    f2 = "/home/dale/Xray/mxscreen_test_data/1-JJ-A1_1/mxs_01/SPOT.XDS"
     params = ep.ExperimentParams(firstFrame=f1)
     spotXDSArray1 = np.genfromtxt(f2)
     res = burner.SpotArrayPixToRes.pixToRes(spotXDSArray1, params)
     psi = burner.SpotArrayPixToRes.pixToPsi(spotXDSArray1, params)
     sf = burner.SpotFilter(spotXDSArray1, resArray=res, psiArray=psi)
-    fvs = sf.frameVsSpots((1,50),(0,0.5))
-    fvi = sf.frameVsInt(resRange=(1,50),psiRange=(-0.1,0.1))
-    plt.plot(fvi[:,0],np.log(fvi[:,1]),marker='o')
+    fvs = sf.frameVsSpots(resRange=(1,5),
+                          psiRange=(-0.1,0.1),
+                          frameRange=(0,300))
+    fvi = sf.frameVsInt(resRange=(1,5),
+                        psiRange=(-2,2),
+                        frameRange=(60,100))
+    plt.plot(fvs[:,0],(fvs[:,1]),marker='o')
     plt.show()
-    os.chdir('/GPFS/CENTRAL/xf17id2/dkreitler/1-JJ-A1_1/')
-    np.savetxt("test_int.txt",fvi)
+    plt.plot(fvi[:,0],(fvi[:,1]),marker='o')
+    plt.show()
+    os.chdir('/home/dale/Xray/mxscreen_test_data/')
+    np.savetxt('test_int_lin.txt',fvi)
     return
 
 if __name__ == "__main__":

@@ -17,15 +17,17 @@ setuptools.setup(
     version="0.0.1dev",
     author="Dale Kreitler",
     author_email="dkreitler@bnl.gov",
-    description="Spotfinding and indexing of single frames from rasters",
+    description="Analysis of initial MX diffraction experiments",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dalekreitler-bnl/mxscreen.git",
+    url="https://github.com/dalekreitler-bnl/mxscreen",
     packages=setuptools.find_packages(),
     classifiers=[
-        "License :: GNU GPL",
+        "License :: MIT",
     ],
-    install_requires=['numpy'],
+    install_requires=['numpy',
+                      'GPyOpt',
+                      'pwlf'],
     python_requires='>=3.6',
     entry_points={
         'console_scripts': [
