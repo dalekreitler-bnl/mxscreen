@@ -60,49 +60,26 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
 
         def objFun(x):
             
-            # encapsulate pwlf.fit or pwlf.fitfast methods because they
-            # throw an error when given one line segment
-            
-            def pwlfWrapper(x):         
-                if x==1:
-                    #least squares with "one" segment
-                    ones = np.ones(self._frames.size)
-                    A = np.matrix(np.vstack((ones, self._frames))).T
-                    b = self._logSignal[...,np.newaxis]
-                    B = np.linalg.pinv(A)
-                    #add penalty for more than one segment
-                    return 10*np.sum(np.square(A*B*b-b))
-                else:
-                    self._pwlf.fitfast(x)
-                    return self._pwlf.ssr
-                
             f = np.zeros(x.shape[0])
-            
             for i, j in enumerate(x):
-                f = pwlfWrapper(j[i])
+                self._pwlf.fitfast(x)
+                f = self._pwlf.ssr
                 print('f is ',f, ' when j[i] is ', j[i])
                 
             return f
 
         bounds = [{'name': 'var_1', 'type': 'discrete',
-                   'domain': np.arange(1, 5)}]
+                   'domain': np.arange(2, 5)}]
 
         myBopt = BayesianOptimization(objFun, domain=bounds, model_type='GP')
-        myBopt.run_optimization(max_iter=20, verbosity=True)
+        myBopt.run_optimization(max_iter=10, verbosity=True)
 
         #myBopt.x_opt and myBopt.fx_opt will return optimum values of
         #parameters and objective function
 
-        x = self._frames
-        if myBopt.x_opt == 1:
-            self._fitBreaks = self._pwlf.fit_with_breaks(np.array([min(x),
-                                                                   max(x)]))
-        else:
-            self._fitBreaks = self._pwlf.fit(myBopt.x_opt)
-            
-        #Choose optimal segment
+        self._fitBreaks = self._pwlf.fit(myBopt.x_opt)
         self._optimalSlope, self._optimalIndices = self.optimalSlope()
-        self._modelHalfLife = np.log(0.5)
+            
         
         return
     
@@ -137,7 +114,8 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
             mask = (x>=fb[j])*(x<fb[j+1])
             segX = x[mask]
             segXIndices = mask.nonzero()
-            if len(segX) > 50:
+            if len(segX) > 0.1*len(x):
+                print('LENGTH X IS ',len(x))
                 bestSlope = slopes[j]
                 print('Optimal slope is ', slopes[j])
                 break

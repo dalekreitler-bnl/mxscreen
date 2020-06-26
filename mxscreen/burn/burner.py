@@ -210,13 +210,14 @@ class BurnExperiment:
             
     def rangesDictList(self):
         
-            
         dictList = []
         resRangeBounds = self._resBounds
         psiRangeBounds = self._psiBounds
         frameRangeBounds = np.array([0,1000])
             
-        keys = ['resRange','psiRange','frameRange']
+        keys = ['resRange',
+                'psiRange',
+                'frameRange']
             
         for i in range(0,len(frameRangeBounds)-1):
             for j in range(0,len(psiRangeBounds)-1):
@@ -245,9 +246,9 @@ class BurnExperiment:
     
     def fitSpotGroups(self):
         
-        for i in self._burnSpotGroupList:
-            i.fitDecayModel()
-            i._decayStrategy.plotSegments()
+        for burnSpotGroup in self._burnSpotGroupList:
+            burnSpotGroup.fitDecayModel()
+            burnSpotGroup._decayStrategy.plotSegments()
             
         return
         
