@@ -59,7 +59,6 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
     def fitDecayModel(self):
 
         def objFun(x):
-            
             f = np.zeros(x.shape[0])
             for i, j in enumerate(x):
                 self._pwlf.fitfast(x)
@@ -70,6 +69,8 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
 
         bounds = [{'name': 'var_1', 'type': 'discrete',
                    'domain': np.arange(2, 5)}]
+        
+        np.random.seed(212121)
 
         myBopt = BayesianOptimization(objFun, domain=bounds, model_type='GP')
         myBopt.run_optimization(max_iter=10, verbosity=True)
@@ -109,13 +110,10 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
         
         
         for j in slopesIndex:
-            print('FB',fb)
-            
             mask = (x>=fb[j])*(x<fb[j+1])
             segX = x[mask]
             segXIndices = mask.nonzero()
-            if len(segX) > 0.1*len(x):
-                print('LENGTH X IS ',len(x))
+            if len(segX) > 50:
                 bestSlope = slopes[j]
                 print('Optimal slope is ', slopes[j])
                 break

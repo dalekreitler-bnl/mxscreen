@@ -128,10 +128,15 @@ class BurnSpotGroup:
         self._intensityArray = self._spotFilter.frameVsInt(**ranges)
         self._spotsArray = self._spotFilter.frameVsSpots(**ranges)
         self._decayStrategy = ds.BayesianSegmentsDecay(self._intensityArray)
+        self._ranges = ranges
         
     def fitDecayModel(self):
         self._decayStrategy.fitDecayModel()
         return
+    
+    @property
+    def ranges(self):
+        return self._ranges
     
     @property
     def modelHalfLife(self):
@@ -195,10 +200,10 @@ class BurnExperiment:
     def bounds(self):
         """create cut offs for filtering spots"""
         
-        resBounds = [0.001] #for arbitrarily low resolution
+        resBounds = [1/self._resArray.max()] #for arbitrarily low resolution
         r = 1/self._resRangeAll[0]
         for i in range(1,self._nResShells + 1):
-            resBounds.append(np.cbrt(i/self._nResShells)*r)
+            resBounds.append(np.sqrt(i/self._nResShells)*r)
         self._resBounds = 1/np.array(resBounds)[::-1]
         psiBounds = [self._psiRangeAll[0]]
         deltaPsi = np.absolute(self._psiRangeAll[1]-
@@ -214,6 +219,9 @@ class BurnExperiment:
         resRangeBounds = self._resBounds
         psiRangeBounds = self._psiBounds
         frameRangeBounds = np.array([0,1000])
+        
+        print('resarray max', self._resArray.max())
+        print('resArray min', self._resArray.min())
             
         keys = ['resRange',
                 'psiRange',
@@ -251,6 +259,18 @@ class BurnExperiment:
             burnSpotGroup._decayStrategy.plotSegments()
             
         return
+    
+    def experimentPlot(self):
+        
+        summaryArray = np.zeros((len(self._burnSpotGroupList),4))
+        for i,burnSpotGroup in enumerate(self._burnSpotGroupList):
+            summaryArray[i,0] = i
+            summaryArray[i,1] = burnSpotGroup._decayStrategy.modelHalfLife
+            summaryArray[i,2] = burnSpotGroup.ranges['resRange'][0]
+            summaryArray[i,3] = burnSpotGroup.ranges['resRange'][1]
+             
+        
+        return summaryArray
         
         
     
