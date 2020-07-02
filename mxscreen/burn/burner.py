@@ -48,7 +48,8 @@ class SpotArrayPixToRes:
     def pixToPsi(cls, spotXDSArray, experimentParams):
         rcArray = SpotArrayPixToRes.reCenter(spotXDSArray,
                                              experimentParams)
-        psi = np.arctan(rcArray[:,1]/rcArray[:,0])
+        psi = np.arctan2(rcArray[:,1],rcArray[:,0])*180/np.pi
+        psi[psi < 0] = 360 + psi[psi < 0]
         return psi
 
 class SpotFilter:
@@ -56,7 +57,7 @@ class SpotFilter:
     '''
     requires SPOT.XDS numpy array and either resolution or psi arrays for
     creating mask, the resolution array is computed from x,y detector
-    coordinates, frameVsSpots frameVsInts will output Nx2 array on a per frame
+    coordinates, spotsVsFrame, intVsFrame will output Nx2 array on a per frame
     basis (N number of frames), filtered by resolution and/or psi angle.
     Resolution or psi range tuple units must be consistent with corresponding
     resolution or psi array.
@@ -100,14 +101,14 @@ class SpotFilter:
         filteredSpotXDSArray = spots[np.argsort(spots[:,2]),:]
         return filteredSpotXDSArray
     
-    def frameVsSpots(self, spotThreshold=5, **kwargs):
+    def spotsVsFrame(self, spotThreshold=5, **kwargs):
 
         mask = self.spotMask(**kwargs)
         spots = self.applyMask(mask)
         frameNumber, nSpots = np.unique(spots[:,2],return_counts=True)
         return np.asarray((frameNumber,nSpots)).T[nSpots > spotThreshold,:]
     
-    def frameVsInt(self, spotThreshold=5, **kwargs):
+    def intVsFrame(self, spotThreshold=5, **kwargs):
    
         #need to sort by frame no. column, then sum rows with same frame no.
         spotMask = self.spotMask(**kwargs)
@@ -125,8 +126,8 @@ class BurnSpotGroup:
                  ranges=None):
 
         self._spotFilter = spotFilter
-        self._intensityArray = self._spotFilter.frameVsInt(**ranges)
-        self._spotsArray = self._spotFilter.frameVsSpots(**ranges)
+        self._intensityArray = self._spotFilter.intVsFrame(**ranges)
+        self._spotsArray = self._spotFilter.spotsVsFrame(**ranges)
         self._decayStrategy = ds.BayesianSegmentsDecay(self._intensityArray)
         self._ranges = ranges
         
@@ -166,7 +167,8 @@ class BurnExperiment:
                  psiRangeAll=None,
                  nPsiWedges=1,
                  frameRangeAll=None,
-                 nFrameBatches=1):
+                 nFrameBatches=1,
+                 **kwargs):
         
         self._spotXDSArray = np.loadtxt(pathToSpotXDS)
         self._params = ep.ExperimentParams(firstFrame=firstFrame)
@@ -197,44 +199,74 @@ class BurnExperiment:
         if frameRangeAll:
             self._frameRangeAll = frameRangeAll
             
-    def bounds(self):
+        if kwargs:
+            self._resBounds = kwargs['resBounds']
+            
+    def resBounds(self):
         """create cut offs for filtering spots"""
+            
+        #self._resBounds = 1/np.array(resBounds)[::-1]
+        sortRes = self._resArray[self._resArray.argsort()]
+        sortRes = sortRes[(sortRes > self._resRangeAll[0])*\
+                          (sortRes < self._resRangeAll[1])]
         
-        resBounds = [1/self._resArray.max()] #for arbitrarily low resolution
-        r = 1/self._resRangeAll[0]
-        for i in range(1,self._nResShells + 1):
-            resBounds.append(np.sqrt(i/self._nResShells)*r)
-        self._resBounds = 1/np.array(resBounds)[::-1]
+        if self._nResShells > 1:
+            print(len(sortRes))
+            dimSize = np.floor_divide(len(sortRes),self._nResShells)
+            print('DIMSIZE',dimSize)
+        
+            self._resBounds = np.resize(sortRes,
+                                        (self._nResShells+1,
+                                         dimSize-1))[:,0]
+            print("RESBOUNDS ",self._resBounds)
+            
+        else:
+            self._resBounds = np.array([sortRes.min(),sortRes.max()])
+            
+        return self._resBounds
+            
+    def psiBounds(self):
+        
         psiBounds = [self._psiRangeAll[0]]
         deltaPsi = np.absolute(self._psiRangeAll[1]-
                                self._psiRangeAll[0]) / self._nPsiWedges
+        
         for k in range(1,self._nPsiWedges + 1):
             psiBounds.append(k*deltaPsi + self._psiRangeAll[0])
         self._psiBounds = np.array(psiBounds)
+        
         return
+
             
     def rangesDictList(self):
         
         dictList = []
         resRangeBounds = self._resBounds
         psiRangeBounds = self._psiBounds
-        frameRangeBounds = np.array([0,1000])
-        
-        print('resarray max', self._resArray.max())
-        print('resArray min', self._resArray.min())
-            
-        keys = ['resRange',
+        frameRangeBounds = np.array([self._frameRangeAll[0],
+                                     self._frameRangeAll[1]])
+        print('resRangeBounds ',resRangeBounds)
+        keys = ['resBin',
+                'psiWedge',
+                'resRange',
                 'psiRange',
                 'frameRange']
-            
+        
+
         for i in range(0,len(frameRangeBounds)-1):
+            psiWedgeCount = 0
             for j in range(0,len(psiRangeBounds)-1):
+                resBinCount = 0
                 for k in range(0,len(resRangeBounds)-1):
                     r = (resRangeBounds[k],resRangeBounds[k+1])
                     p = (psiRangeBounds[j],psiRangeBounds[j+1])
                     f = (frameRangeBounds[i],frameRangeBounds[i+1])
-                    rangesDict = dict(zip(keys,[r,p,f]))
+                    rangesDict = dict(zip(keys,[resBinCount,
+                                                psiWedgeCount,
+                                                r,p,f]))
+                    resBinCount += 1
                     dictList.append(rangesDict)
+                psiWedgeCount += 1
                     
         self._rangesDictList = dictList
             
@@ -242,21 +274,21 @@ class BurnExperiment:
 
     def spotGroupList(self):
         
-        burnSpotGroups = []
-        for i in self._rangesDictList:
+        self._burnSpotGroupList = []
+        for ranges in self._rangesDictList:
             burnSpotGroup = BurnSpotGroup(spotFilter=self._spotFilter,
-                                          ranges=i)
-            burnSpotGroups.append(burnSpotGroup)
-        
-        self._burnSpotGroupList = burnSpotGroups
-        
+                                          ranges=ranges)
+            self._burnSpotGroupList.append(burnSpotGroup)
+
         return
+    
     
     def fitSpotGroups(self):
         
         for burnSpotGroup in self._burnSpotGroupList:
             burnSpotGroup.fitDecayModel()
-            burnSpotGroup._decayStrategy.plotSegments()
+            print("RANGESTEST",burnSpotGroup.ranges)
+            burnSpotGroup._decayStrategy.plotSegments(**burnSpotGroup.ranges)
             
         return
     
@@ -267,8 +299,7 @@ class BurnExperiment:
             summaryArray[i,0] = i
             summaryArray[i,1] = burnSpotGroup._decayStrategy.modelHalfLife
             summaryArray[i,2] = burnSpotGroup.ranges['resRange'][0]
-            summaryArray[i,3] = burnSpotGroup.ranges['resRange'][1]
-             
+            summaryArray[i,3] = burnSpotGroup.ranges['resRange'][1] 
         
         return summaryArray
         

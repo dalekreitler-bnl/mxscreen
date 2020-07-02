@@ -68,7 +68,7 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
             return f
 
         bounds = [{'name': 'var_1', 'type': 'discrete',
-                   'domain': np.arange(2, 5)}]
+                   'domain': np.arange(2, 4)}]
         
         np.random.seed(212121)
 
@@ -84,7 +84,7 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
         
         return
     
-    def plotSegments(self):
+    def plotSegments(self, **kwargs):
         xHat = np.linspace(min(self._frames), max(self._frames), num=5000)
         yHat = self._pwlf.predict(xHat)
         plt.figure()
@@ -92,6 +92,12 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
                  self._frames[self._optimalIndices],
                  self._logSignal[self._optimalIndices],'o',)
         plt.plot(xHat, yHat, '-',c='r')
+        if kwargs:
+            plt.figtext(0,
+                        1,
+                        "Resolution Limits (A) \n {}-{}"\
+                            .format(format(kwargs['resRange'][0],'0.2f'),
+                                    format(kwargs['resRange'][1],'0.2f')))
         plt.xlabel('frame no.')
         plt.ylabel('log(SUM(intensity))')
         plt.show()
@@ -108,12 +114,11 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
         slopesIndex = slopes.argsort()
         bestSlope = slopes[slopesIndex][0]
         
-        
         for j in slopesIndex:
             mask = (x>=fb[j])*(x<fb[j+1])
             segX = x[mask]
             segXIndices = mask.nonzero()
-            if len(segX) > 50:
+            if len(segX) > 30:
                 bestSlope = slopes[j]
                 print('Optimal slope is ', slopes[j])
                 break
