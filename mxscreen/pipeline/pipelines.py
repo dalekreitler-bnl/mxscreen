@@ -56,6 +56,9 @@ class MxPipeline:
     def setIndexer(self, indexer):
         self._indexer = indexer
         
+    def makeSpotFile(self):
+        self._spotFinder.run()
+        
     def run(self):
         self._spotFinder.run()
         self._indexer.run()

@@ -34,6 +34,7 @@ setuptools.setup(
             "mxscreen_dozor=mxscreen.scripts.mxpipeline:mainDozor",
             "mxscreen_dozor_slow=mxscreen.scripts.mxpipeline:mainDozorSlow",
             "mxscreen_dials=mxscreen.scripts.mxpipeline:mainDials",
+            "mxscreen_spots_only=mxscreen.scripts.mxpipeline:mainDialsSpotsOnly",
             ]
     }
 )

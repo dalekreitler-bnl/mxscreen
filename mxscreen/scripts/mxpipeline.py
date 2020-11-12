@@ -11,7 +11,6 @@ from mxscreen.pipeline import pipelines
 
 
 def mainDozor():
-    
     mxPipelineBuilder = pipelines.MxPipelineBuilder()
     mxPipelineDirector = pipelines.MxPipelineDirector(mxPipelineBuilder)
     mxPipelineDozor = mxPipelineDirector.getMxPipeline("dozor")
@@ -26,9 +25,15 @@ def mainDozorSlow():
     return
 
 def mainDials():
-
     mxPipelineBuilder = pipelines.MxPipelineBuilder()
     mxPipelineDirector = pipelines.MxPipelineDirector(mxPipelineBuilder)
     mxPipelineDials = mxPipelineDirector.getMxPipeline("dials")
     mxPipelineDials.run()
+    return
+
+def mainDialsSpotsOnly():
+    mxPipelineBuilder = pipelines.MxPipelineBuilder()
+    mxPipelineDirector = pipelines.MxPipelineDirector(mxPipelineBuilder)
+    mxPipelineDials = mxPipelineDirector.getMxPipeline("dials")
+    mxPipelineDials.makeSpotFile()
     return
