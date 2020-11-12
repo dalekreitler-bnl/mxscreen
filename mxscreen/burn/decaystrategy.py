@@ -8,6 +8,7 @@ Created on Tue Jun 23 13:09:52 2020
 
 from GPyOpt.methods import BayesianOptimization
 import pwlf
+from scipy.optimize import curve_fit, bisect
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -22,6 +23,70 @@ class DecayStrategy:
     def modelHalfLife(self):
         pass
     
+class DecayStrategyFactory:
+    
+    @classmethod
+    def getDecayStrategy(self, decayStrategy, signalArray):
+        if decayStrategy == "doubleExponential":
+            return DoubleExponentialDecay(signalArray)
+        elif decayStrategy == "bayesianSegments":
+            return BayesianSegmentsDecay(signalArray)
+        else:
+            raise ValueError(decayStrategy)
+
+class DoubleExponentialDecay(DecayStrategy):
+    
+    def __init__(self, signalArray):
+        
+        self._frames = signalArray[:,0]
+        self._signal = signalArray[:,1]
+        
+    def fitDecayModel(self):
+        
+        def objFun(x,a1,a2,c1,c2):
+            return a1*np.exp(-c1*x) + a2*np.exp(-c2*x)
+        
+        self._modelParams,_ = curve_fit(objFun,
+                              self._frames,
+                              self._signal/self._signal.max(),
+                              bounds=(0,[1,1,0.10,0.10]))
+        
+        return
+    
+    def plotSegments(self, **kwargs):
+        
+        
+        xHat = np.linspace(min(self._frames), max(self._frames), num=5000)
+        yHat = self._modelParams[0]*np.exp(-self._modelParams[2]*xHat) + \
+               self._modelParams[1]*np.exp(-self._modelParams[3]*xHat)
+               
+        plt.figure()
+        plt.plot(self._frames, self._signal/self._signal.max(), 'o')
+        plt.plot(xHat, yHat, '-',c='r')
+        
+        if kwargs:
+            plt.figtext(0,
+                        1,
+                        "Resolution Limits (A) \n {}-{}"\
+                            .format(format(kwargs['resRange'][0],'0.2f'),
+                                    format(kwargs['resRange'][1],'0.2f')))
+        plt.xlabel('frame no.')
+        plt.ylabel('Scaled SUM(intensity)')
+        plt.show()
+        
+        return
+    
+    @property
+    def modelHalfLife(self):
+        
+        def objFun(x):
+            f = self._modelParams[0]*np.exp(-self._modelParams[2]*x) + \
+                self._modelParams[1]*np.exp(-self._modelParams[3]*x) - \
+                0.5*(self._modelParams[0] + self._modelParams[1])
+            return f
+
+        return bisect(objFun,0,10*self._frames.max())
+
 class LogLinDecayStrategy(DecayStrategy):
     
     def fitDecayModel(self):
@@ -68,7 +133,7 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
             return f
 
         bounds = [{'name': 'var_1', 'type': 'discrete',
-                   'domain': np.arange(2, 4)}]
+                   'domain': np.arange(2, 5)}]
         
         np.random.seed(212121)
 
@@ -92,6 +157,7 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
                  self._frames[self._optimalIndices],
                  self._logSignal[self._optimalIndices],'o',)
         plt.plot(xHat, yHat, '-',c='r')
+        
         if kwargs:
             plt.figtext(0,
                         1,
@@ -101,6 +167,7 @@ class BayesianSegmentsDecay(LogLinDecayStrategy):
         plt.xlabel('frame no.')
         plt.ylabel('log(SUM(intensity))')
         plt.show()
+        
         return
     
     def optimalSlope(self):

@@ -21,32 +21,32 @@ import os
 
 def main():
     
-    f1 = "/home/dale/Xray/mxscreen_test_data/1-JJ-A1_1/test01_23800_master.h5"
-    f2 = "/home/dale/Xray/mxscreen_test_data/SPOT_BURN_PK_DOZOR.XDS"
-    f3 = "/home/dale/Xray/mxscreen_test_data/BURN_SPOT_DOZOR.XDS"
+    f1 = "/Users/dkreitler/xray/mxscreen_test_data/proteinaseK_static_burn_center_24539_master.h5"
+    f2 = "/Users/dkreitler/xray/mxscreen_test_data/SPOT_BURN_PK_DIALS.XDS"
+    f3 = "/home/dale/Xray/mxscreen_test_data/BURN_SPOT_DIALS.XDS"
     
     burnExperimentDials = burner.BurnExperiment(f2,
                                                 f1,
-                                                nResShells=1,
-                                                resRangeAll=(2.66,2.95),
+                                                nResShells=8,
+                                                resRangeAll=(1,10),
                                                 nPsiWedges=1,
                                                 psiRangeAll=(0,360),
-                                                frameRangeAll=(0,500))
+                                                frameRangeAll=(1,200),
+                                                decayStrategy="doubleExponential")
     burnExperimentDials.resBounds()
     burnExperimentDials.psiBounds()
     burnExperimentDials.rangesDictList()
     burnExperimentDials.spotGroupList()
     burnExperimentDials.fitSpotGroups()
     results = burnExperimentDials.experimentPlot()
+    
     print(results)
-    os.chdir("/home/dale/Xray/mxscreen_test_data")
-    np.savetxt("protK_burn_dozor_ints.csv",
-               burnExperimentDials._burnSpotGroupList[0]._intensityArray,
-               delimiter=",")
+
     plt.plot(results[:,0],results[:,1],
              results[:,0],results[:,1],'bo')
-    plt.ylabel('Half life as Frame no.')
+    plt.ylabel('Half life (Frame no.)')
     plt.xlabel('resolution bin number')
+    plt.title("Decay rate versus spot resolution")
     plt.show()
     
     

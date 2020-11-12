@@ -123,12 +123,13 @@ class BurnSpotGroup:
     
     def __init__(self,
                  spotFilter=None,
-                 ranges=None):
+                 ranges=None,
+                 decayStrategy="bayesianSegments"):
 
         self._spotFilter = spotFilter
         self._intensityArray = self._spotFilter.intVsFrame(**ranges)
         self._spotsArray = self._spotFilter.spotsVsFrame(**ranges)
-        self._decayStrategy = ds.BayesianSegmentsDecay(self._intensityArray)
+        self._decayStrategy = ds.DecayStrategyFactory.getDecayStrategy(decayStrategy,self._intensityArray)
         self._ranges = ranges
         
     def fitDecayModel(self):
@@ -143,9 +144,6 @@ class BurnSpotGroup:
     def modelHalfLife(self):
         return self._decayStrategy.modelHalfLife
     
-    @property
-    def fitIndices(self):
-        return self._decayStrategy.fitIndices
 
 class BurnExperiment:
     
@@ -168,6 +166,7 @@ class BurnExperiment:
                  nPsiWedges=1,
                  frameRangeAll=None,
                  nFrameBatches=1,
+                 decayStrategy="bayesianSegments",
                  **kwargs):
         
         self._spotXDSArray = np.loadtxt(pathToSpotXDS)
@@ -179,6 +178,7 @@ class BurnExperiment:
         self._spotFilter = SpotFilter(self._spotXDSArray,
                                       resArray=self._resArray,
                                       psiArray=self._psiArray)
+        self._decayStrategy = decayStrategy
         self._nResShells = nResShells
         self._nPsiWedges = nPsiWedges
         self._nFrameBatches = nFrameBatches
@@ -277,7 +277,8 @@ class BurnExperiment:
         self._burnSpotGroupList = []
         for ranges in self._rangesDictList:
             burnSpotGroup = BurnSpotGroup(spotFilter=self._spotFilter,
-                                          ranges=ranges)
+                                          ranges=ranges,
+                                          decayStrategy=self._decayStrategy)
             self._burnSpotGroupList.append(burnSpotGroup)
 
         return

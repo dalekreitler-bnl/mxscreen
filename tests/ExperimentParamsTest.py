@@ -10,7 +10,7 @@ from mxscreen.experimentparams import experimentparams
 
 def main():
     
-    ep = experimentparams.ExperimentParams(firstFrame="/home/dkreitler/mxscreen_test_data/rasterImages/Lyso_13_r_Raster_792_master.h5")
+    ep = experimentparams.ExperimentParams(firstFrame="/Users/dkreitler/xray/mxscreen_test_data/rasterImages/Lyso_13_r_Raster_792_master.h5")
     print(ep.detDistance)
     print(ep.pixelSize)
     print(ep.beamx)

@@ -14,17 +14,18 @@ import matplotlib.pyplot as plt
 
 def main():
     
-    f1 = "/home/dale/Xray/mxscreen_test_data/1-JJ-A1_1/test01_23800_master.h5"
-    f2 = "/home/dale/Xray/mxscreen_test_data/SPOT_BURN_PK_NE_DOZOR.XDS"
-    f3 = "/home/dale/Xray/mxscreen_test_data/SPOT_BURN_PK_DOZOR.XDS"
+    f1 = "/Users/dkreitler/xray/mxscreen_test_data/proteinaseK_static_burn_center_24539_master.h5"
+    f2 = "/Users/dkreitler/xray/mxscreen_test_data/SPOT_BURN_PK_DIALS.XDS"
+    f3 = "/Users/dkreitler/xray/mxscreen_test_data/SPOT_BURN_PK_DOZOR.XDS"
     
     burnExperimentDials = burner.BurnExperiment(f2,
                                                 f1,
-                                                nResShells=5,
-                                                resRangeAll=(1.3,5),
+                                                nResShells=10,
+                                                resRangeAll=(1,5),
                                                 nPsiWedges=1,
-                                                psiRangeAll=(0,360),
-                                                frameRangeAll=(0,200))
+                                                psiRangeAll=(0,180),
+                                                frameRangeAll=(2,175),
+                                                decayStrategy="doubleExponential")
 
     burnExperimentDials.psiBounds()
     dialsBounds=burnExperimentDials.resBounds()
@@ -32,11 +33,12 @@ def main():
     boundsdict={'resBounds': dialsBounds}
     burnExperimentDozor = burner.BurnExperiment(f3,
                                                 f1,
-                                                nResShells=5,
-                                                resRangeAll=(1.3,5),
+                                                nResShells=10,
+                                                resRangeAll=(1,5),
                                                 nPsiWedges=1,
-                                                psiRangeAll=(0,360),
-                                                frameRangeAll=(0,200),
+                                                psiRangeAll=(270,360),
+                                                frameRangeAll=(2,175),
+                                                decayStrategy="doubleExponential",
                                                 **boundsdict)
     burnExperimentDozor.psiBounds()
     #burnExperimentDozor.resBounds()
@@ -48,12 +50,14 @@ def main():
     burnExperimentDozor.fitSpotGroups()
     resultsDials = burnExperimentDials.experimentPlot()
     resultsDozor = burnExperimentDozor.experimentPlot()
+    
     print('dials results\n',resultsDials)
     print('dozor results\n',resultsDozor)
+    
     plt.plot(resultsDials[:,0],resultsDials[:,1],'b-o',
-             label='near-edge')
+             label='dials')
     plt.plot(resultsDozor[:,0],resultsDozor[:,1],'g-o',
-             label='center')
+             label='dozor')
     plt.legend()
     plt.ylabel('Half life as Frame no.')
     plt.xlabel('resolution bin number')
